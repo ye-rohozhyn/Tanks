@@ -23,6 +23,8 @@ public class PlayerTankMovement : MonoBehaviour
     private Vector3 _movePosition;
     private Quaternion _moveRotation;
     private Animator _tankAnimator;
+    private float _rotateAngle;
+    private Transform[] _frontWhells;
 
     //Tank properties
     private float _tankBaseSpeed = 0;
@@ -56,9 +58,17 @@ public class PlayerTankMovement : MonoBehaviour
 
         if (tracks[_trackIndex] != null)
         {
-            _tankBaseSpeed = tracks[_trackIndex].GetTankBaseSpeed();
-            _tankBaseRotationSpeed = tracks[_trackIndex].GetTankBaseRotationSpeed();
-            _tankAnimator = tracks[_trackIndex].GetAnimator();
+            _tankBaseSpeed = tracks[_trackIndex].tankBaseSpeed;
+            _tankBaseRotationSpeed = tracks[_trackIndex].tankBaseRotationSpeed;
+            if (tracks[_trackIndex].tankBaseType == TankBaseType.Track)
+            {
+                _tankAnimator = tracks[_trackIndex].animator;
+            }
+            else if (tracks[_trackIndex].tankBaseType == TankBaseType.Whells)
+            {
+                _frontWhells = tracks[_trackIndex].frontWhells;
+                _rotateAngle = tracks[_trackIndex].rotateAngle;
+            }
         }
 
         if (guns[_gunIndex] != null)
@@ -85,7 +95,17 @@ public class PlayerTankMovement : MonoBehaviour
         _vertical = Input.GetAxis("Vertical");
         _horizontal = Input.GetAxis("Horizontal");
 
-        _tankAnimator.SetFloat("Factor", _vertical);
+        if (_tankAnimator != null)
+        {
+            _tankAnimator.SetFloat("Factor", _vertical);
+        }
+        else
+        {
+            foreach (Transform whell in _frontWhells)
+            {
+                whell.localRotation = Quaternion.Lerp(whell.localRotation, Quaternion.Euler(0, _horizontal * _rotateAngle, 0), 0.1f);
+            }
+        }
 
         if (Input.GetMouseButtonDown(0) & tankShooting != null)
         {
