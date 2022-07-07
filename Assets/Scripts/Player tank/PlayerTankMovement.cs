@@ -22,6 +22,7 @@ public class PlayerTankMovement : MonoBehaviour
     private Rigidbody _tankRigidbody;
     private Vector3 _movePosition;
     private Quaternion _moveRotation;
+    private Animator _tankAnimator;
 
     //Tank properties
     private float _tankBaseSpeed = 0;
@@ -57,6 +58,7 @@ public class PlayerTankMovement : MonoBehaviour
         {
             _tankBaseSpeed = tracks[_trackIndex].GetTankBaseSpeed();
             _tankBaseRotationSpeed = tracks[_trackIndex].GetTankBaseRotationSpeed();
+            _tankAnimator = tracks[_trackIndex].GetAnimator();
         }
 
         if (guns[_gunIndex] != null)
@@ -82,6 +84,8 @@ public class PlayerTankMovement : MonoBehaviour
     {
         _vertical = Input.GetAxis("Vertical");
         _horizontal = Input.GetAxis("Horizontal");
+
+        _tankAnimator.SetFloat("Factor", _vertical);
 
         if (Input.GetMouseButtonDown(0) & tankShooting != null)
         {
