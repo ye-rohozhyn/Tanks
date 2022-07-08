@@ -121,7 +121,9 @@ public class TankShooting : MonoBehaviour
     {
         _timer = lifeTime;
 
-        splashEffect.startLifetime = length;
+        ParticleSystem.MainModule main = splashEffect.main;
+        main.startLifetime = length;
+
         if (splashEffect.isStopped) { splashEffect.Play(); }
     }
 
