@@ -137,8 +137,8 @@ public class PlayerTankMovement : MonoBehaviour
 
     private void LookTheTarget()
     {
-        _lookDirection = (lookTarget.position - tankHead.position).normalized;
+        _lookDirection = (lookTarget.localPosition - tankHead.localPosition).normalized;
         _lookRotation = Quaternion.LookRotation(new Vector3(_lookDirection.x, 0f, _lookDirection.z));
-        tankHead.rotation = Quaternion.Lerp(tankHead.rotation, _lookRotation, Time.deltaTime * _tankHeadSpeed);
+        tankHead.localRotation = Quaternion.Lerp(tankHead.localRotation, _lookRotation, Time.deltaTime * _tankHeadSpeed);
     }
 }
