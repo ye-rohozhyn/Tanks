@@ -15,6 +15,5 @@ public class Pursuer : MonoBehaviour
     private void FixedUpdate()
     {
         _transform.position = Vector3.Lerp(_transform.position, target.position, Time.deltaTime * smoothSpeed);
-        _transform.rotation = Quaternion.Lerp(_transform.rotation, target.rotation, Time.deltaTime * smoothSpeed);
     }
 }

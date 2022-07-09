@@ -8,6 +8,7 @@ public class Shell : MonoBehaviour
     [SerializeField] private float radius;
     [SerializeField] private float force;
     [SerializeField] private ParticleSystem explosionEffect;
+    [SerializeField] private string[] ignoreTags;
 
     private void Explode()
     {
@@ -42,13 +43,14 @@ public class Shell : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.transform.tag == "Enemy")
+        string collisionTag = collision.transform.tag;
+
+        foreach (string tag in ignoreTags)
         {
-            collision.transform.GetComponent<HealthEnemy>().ToDamage(damage);
-            Explode();
+            if (collisionTag == tag) return;
         }
-        else if(collision.transform.tag != "Player"){
-            Explode();
-        }
+
+        if (collisionTag == "Enemy") collision.transform.GetComponent<HealthEnemy>().ToDamage(damage);
+        Explode();
     }
 }
