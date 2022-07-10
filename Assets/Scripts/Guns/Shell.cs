@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class Shell : MonoBehaviour
 {
+    [SerializeField] private Transform player;
     [SerializeField] private float damage = 50f;
 
     [Header("Explosion")]
@@ -50,7 +51,8 @@ public class Shell : MonoBehaviour
             if (collisionTag == tag) return;
         }
 
-        if (collisionTag == "Enemy") collision.transform.GetComponent<HealthEnemy>().ToDamage(damage);
+        if (collisionTag == "Enemy") collision.transform.GetComponent<TankHealth>().ToDamage(damage);
+        if (collisionTag == "Player") player.GetComponent<TankHealth>().ToDamage(damage);
         Explode();
     }
 }

@@ -3,11 +3,15 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))] 
 public class PlayerTankMovement : MonoBehaviour
 {
+    [Header("Tank info")]
     [SerializeField] private Transform tankBase;
     [SerializeField] private Transform tankHead;
     [SerializeField] private Transform lookTarget;
     [SerializeField] private TankBaseInfo[] tracks;
     [SerializeField] private TankGunInfo[] guns;
+    [SerializeField] private TankHealth tankHealth;
+
+    [Header("Drag & ground check")]
     [SerializeField] private float tankGroundDrag = 6;
     [SerializeField] private float tankAirDrag = 2;
     [SerializeField] private Transform centerOfMass;
@@ -31,8 +35,9 @@ public class PlayerTankMovement : MonoBehaviour
     private float _tankBaseRotationSpeed = 0;
     private float _tankHeadSpeed = 0;
     private float _tankRecoil = 0;
-    private bool isGrounded = false;
-    private TankShooting tankShooting;
+    private bool _isGrounded = false;
+    private bool _isLive = true;
+    private TankShooting _tankShooting;
 
     //tank head rotation
     private Vector3 _lookDirection;
@@ -54,12 +59,13 @@ public class PlayerTankMovement : MonoBehaviour
         tracks[_trackIndex].transform.gameObject.SetActive(true);
         guns[_gunIndex].transform.gameObject.SetActive(true);
 
-        tankShooting = guns[_gunIndex].GetComponent<TankShooting>();
+        _tankShooting = guns[_gunIndex].GetComponent<TankShooting>();
 
         if (tracks[_trackIndex] != null)
         {
             _tankBaseSpeed = tracks[_trackIndex].tankBaseSpeed;
             _tankBaseRotationSpeed = tracks[_trackIndex].tankBaseRotationSpeed;
+
             if (tracks[_trackIndex].tankBaseType == TankBaseType.Track)
             {
                 _tankAnimator = tracks[_trackIndex].animator;
@@ -80,14 +86,27 @@ public class PlayerTankMovement : MonoBehaviour
 
     private void Update()
     {
-        Inputs();
-        CheckGroud();
+        if (tankHealth.GetHealth() == 0) _isLive = false;
+
+        if (_isLive)
+        {
+            Inputs();
+            CheckGroud();
+        }
+        else if (_vertical > 0 & _tankAnimator)
+        {
+            _vertical -= Time.deltaTime;
+            _tankAnimator.SetFloat("Factor", _vertical);
+        }
     }
 
     private void FixedUpdate()
     {
-        if (_vertical != 0) TankMovement();
-        LookTheTarget();
+        if (_isLive)
+        {
+            if (_vertical != 0) TankMovement();
+            LookTheTarget();
+        }
     }
 
     private void Inputs()
@@ -107,27 +126,26 @@ public class PlayerTankMovement : MonoBehaviour
             }
         }
 
-        if (Input.GetMouseButtonDown(0) & tankShooting != null)
+        if (Input.GetMouseButtonDown(0) & _tankShooting != null)
         {
-            if (tankShooting.GetCurrentTimer() <= 0)
+            if (_tankShooting.GetCurrentTimer() <= 0)
             {
                 _tankRigidbody.AddForce(-tankHead.forward * _tankRecoil, ForceMode.VelocityChange);
+                _tankShooting.Shoot();
             }
-
-            tankShooting.Shoot();
         }
     }
 
     private void CheckGroud()
     {
-        isGrounded = Physics.CheckSphere(tankBase.position, sphereRadius, groundMask);
-        _tankRigidbody.drag = isGrounded ? tankGroundDrag : tankAirDrag;
+        _isGrounded = Physics.CheckSphere(tankBase.position, sphereRadius, groundMask);
+        _tankRigidbody.drag = _isGrounded ? tankGroundDrag : tankAirDrag;
     }
 
     private void TankMovement()
     {
         //Moving forward and backward
-        _movePosition = tankBase.forward * _vertical * (isGrounded ? _tankBaseSpeed : _tankBaseSpeed / (tankGroundDrag / tankAirDrag));
+        _movePosition = tankBase.forward * _vertical * (_isGrounded ? _tankBaseSpeed : _tankBaseSpeed / (tankGroundDrag / tankAirDrag));
         _tankRigidbody.AddForce(_movePosition, ForceMode.Acceleration);
 
         //Rotation the tank base

@@ -5,11 +5,16 @@ using UnityEngine.AI;
 [RequireComponent(typeof(Rigidbody))]
 public class EnemyMovement : MonoBehaviour
 {
-    [SerializeField] private NavMeshAgent navMeshAgent;
-    [SerializeField] private Transform target;
+    [Header("Tank components")]
     [SerializeField] private Transform enemyTankHead;
+    [SerializeField] private NavMeshAgent navMeshAgent;
+
+    [Header("Tank info")]
     [SerializeField] private TankBaseInfo track;
     [SerializeField] private TankGunInfo gun;
+    [SerializeField] private TankHealth tankHealth;
+
+    [Header("Tank properties")]
     [SerializeField] private float stopDistance = 15;
     [SerializeField] private float viewDistance = 25;
     [SerializeField] private float tankGroundDrag = 6;
@@ -18,18 +23,29 @@ public class EnemyMovement : MonoBehaviour
     [SerializeField] private Transform centerOfMass;
     [SerializeField] private LayerMask groundMask;
 
-    private Transform _transform;
-    private Rigidbody _rigidbody;
-    private Vector3 _nextPoint;
-    private Vector3[] path;
+    [Header("Target")]
+    [SerializeField] private Transform target;
+
+    //Tank properties
     private float _movemetSpeed = 10;
     private float _rotationSpeed = 5;
     private float _distanceToTarget = 0;
-    private TankShooting _tankShooting;
     private float _tankRecoil = 0;
+
+    //Tank info
+    private Transform _transform;
+    private Rigidbody _rigidbody;
+    private Animator _tankAnimator;
+    private TankShooting _tankShooting;
+
+    //Find path
+    private Vector3 _nextPoint;
+    private Vector3[] path;
+
+    //Helper variables
     private bool isGrounded = false;
     private float _vertical = 0;
-    private Animator _tankAnimator;
+    private bool isLive = true;
 
     private void Start()
     {
@@ -49,9 +65,29 @@ public class EnemyMovement : MonoBehaviour
 
     private void Update()
     {
-        CheckGroud();
+        if (tankHealth.GetHealth() == 0) isLive = false;
+
+        if (isLive)
+        {
+            CheckGroud();
+        }
+
         TankAnimations();
     }
+
+    private void FixedUpdate()
+    {
+        if (isLive)
+        {
+            MovementLogic();
+        }
+        else if (_vertical > 0)
+        {
+            _vertical -= Time.deltaTime;
+        }
+    }
+
+    #region - Update functions -
 
     private void CheckGroud()
     {
@@ -67,7 +103,11 @@ public class EnemyMovement : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
+    #endregion
+
+    #region - Movement functions -
+
+    private void MovementLogic()
     {
         _distanceToTarget = Vector3.Distance(_transform.position, target.position);
 
@@ -81,9 +121,9 @@ public class EnemyMovement : MonoBehaviour
                 EnemyRotation(_transform, _nextPoint);
                 if (_vertical < 1) _vertical += Time.deltaTime;
             }
-            else
+            else if(_vertical > 0)
             {
-                if(_vertical > 0) _vertical -= Time.deltaTime;
+                _vertical -= Time.deltaTime;
             }
 
             MoveForvard();
@@ -94,6 +134,10 @@ public class EnemyMovement : MonoBehaviour
                 _rigidbody.AddForce(-_transform.forward * _tankRecoil, ForceMode.VelocityChange);
                 _tankShooting.Shoot();
             }
+        }
+        else if (_vertical > 0)
+        {
+            _vertical -= Time.deltaTime;
         }
     }
 
@@ -109,6 +153,10 @@ public class EnemyMovement : MonoBehaviour
         Vector3 movePosition = _transform.forward * _vertical * (isGrounded ? _movemetSpeed : _movemetSpeed / (tankGroundDrag / tankAirDrag));
         _rigidbody.AddForce(movePosition, ForceMode.Acceleration);
     }
+
+    #endregion
+
+    #region - Helper functions -
 
     private Vector3 GetNextPoint()
     {
@@ -137,4 +185,6 @@ public class EnemyMovement : MonoBehaviour
         if (minIndex + 1 == distances.Count) return path[minIndex];
         else return path[minIndex + 1];
     }
+
+    #endregion
 }

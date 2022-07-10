@@ -8,7 +8,7 @@ public class Fire : MonoBehaviour
     {
         if (other.tag == "Enemy")
         {
-            other.GetComponent<HealthEnemy>().ToDamage(damage);
+            other.GetComponent<TankHealth>().ToDamage(damage);
         }
     }
 }
