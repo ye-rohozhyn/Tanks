@@ -46,7 +46,7 @@ public class PlayerTankMovement : MonoBehaviour
     {
         _tankRigidbody = GetComponent<Rigidbody>();
         _tankRigidbody.drag = tankGroundDrag;
-        _tankRigidbody.centerOfMass = centerOfMass.position;
+        _tankRigidbody.centerOfMass = centerOfMass.localPosition;
 
         _trackIndex = PlayerPrefs.GetInt("Active track", _trackIndex);
         _gunIndex = PlayerPrefs.GetInt("Active gun", _gunIndex);

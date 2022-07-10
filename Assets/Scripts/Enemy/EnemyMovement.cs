@@ -28,28 +28,43 @@ public class EnemyMovement : MonoBehaviour
     private TankShooting _tankShooting;
     private float _tankRecoil = 0;
     private bool isGrounded = false;
+    private float _vertical = 0;
+    private Animator _tankAnimator;
 
     private void Start()
     {
         _transform = GetComponent<Transform>();
         _rigidbody = GetComponent<Rigidbody>();
-        _rigidbody.centerOfMass = centerOfMass.position;
+        _rigidbody.centerOfMass = centerOfMass.localPosition;
 
         _movemetSpeed = track.tankBaseSpeed;
         _rotationSpeed = gun.GetTankGunSpeed();
         _tankRecoil = gun.GetTankRecoil();
         _tankShooting = gun.GetComponent<TankShooting>();
+        if (track.tankBaseType == TankBaseType.Track)
+        {
+            _tankAnimator = track.animator;
+        }
     }
 
     private void Update()
     {
         CheckGroud();
+        TankAnimations();
     }
 
     private void CheckGroud()
     {
         isGrounded = Physics.CheckSphere(_transform.position, sphereRadius, groundMask);
         _rigidbody.drag = isGrounded ? tankGroundDrag : tankAirDrag;
+    }
+
+    private void TankAnimations()
+    {
+        if (_tankAnimator != null)
+        {
+            _tankAnimator.SetFloat("Factor", _vertical);
+        }
     }
 
     private void FixedUpdate()
@@ -64,9 +79,14 @@ public class EnemyMovement : MonoBehaviour
                 _nextPoint.y = _transform.position.y;
 
                 EnemyRotation(_transform, _nextPoint);
-                MoveForvard();
+                if (_vertical < 1) _vertical += Time.deltaTime;
+            }
+            else
+            {
+                if(_vertical > 0) _vertical -= Time.deltaTime;
             }
 
+            MoveForvard();
             EnemyRotation(enemyTankHead, target.position);
 
             if (_tankShooting.GetCurrentTimer() <= 0)
@@ -86,7 +106,7 @@ public class EnemyMovement : MonoBehaviour
 
     private void MoveForvard()
     {
-        Vector3 movePosition = _transform.forward * 1f * (isGrounded ? _movemetSpeed : _movemetSpeed / (tankGroundDrag / tankAirDrag));
+        Vector3 movePosition = _transform.forward * _vertical * (isGrounded ? _movemetSpeed : _movemetSpeed / (tankGroundDrag / tankAirDrag));
         _rigidbody.AddForce(movePosition, ForceMode.Acceleration);
     }
 

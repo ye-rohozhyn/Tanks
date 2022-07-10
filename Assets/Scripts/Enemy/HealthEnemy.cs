@@ -1,14 +1,30 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class HealthEnemy : MonoBehaviour
 {
-    [SerializeField] private float Health = 100;
+    [SerializeField] private float health = 100;
+    [SerializeField] private Slider healthBar;
+    [SerializeField] private Transform playerCamera;
+
+    private void Start()
+    {
+        healthBar.maxValue = health;
+        healthBar.value = health;
+    }
+
+    private void FixedUpdate()
+    {
+        healthBar.transform.LookAt(playerCamera.position);
+    }
 
     public void ToDamage(float damage)
     {
-        Health -= damage;
+        health -= damage;
 
-        if (Health <= 0)
+        healthBar.value = health;
+
+        if (health <= 0)
         {
             Death();
         }
