@@ -25,6 +25,9 @@ public class EnemyMovement : MonoBehaviour
 
     [Header("Target")]
     [SerializeField] private Transform target;
+    [SerializeField] private Transform raycastPosition;
+    [SerializeField] private float distance;
+    [SerializeField] private LayerMask playerLayer;
 
     //Tank properties
     private float _movemetSpeed = 10;
@@ -111,7 +114,7 @@ public class EnemyMovement : MonoBehaviour
     {
         _distanceToTarget = Vector3.Distance(_transform.position, target.position);
 
-        if (_distanceToTarget <= viewDistance)
+        if (_distanceToTarget <= viewDistance || tankHealth.GetHealth() < tankHealth.GetMaxHealth())
         {
             if (_distanceToTarget > stopDistance)
             {
@@ -131,8 +134,12 @@ public class EnemyMovement : MonoBehaviour
 
             if (_tankShooting.GetCurrentTimer() <= 0)
             {
-                _rigidbody.AddForce(-_transform.forward * _tankRecoil, ForceMode.VelocityChange);
-                _tankShooting.Shoot();
+                RaycastHit hit;
+                if (Physics.Raycast(raycastPosition.position, raycastPosition.TransformDirection(Vector3.forward), out hit, distance, playerLayer))
+                {
+                    _rigidbody.AddForce(-_transform.forward * _tankRecoil, ForceMode.VelocityChange);
+                    _tankShooting.Shoot();
+                }
             }
         }
         else if (_vertical > 0)
